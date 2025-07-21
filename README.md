@@ -14,7 +14,7 @@ This project is a standalone Next.js API that refactors a set of Genesys Cloud F
   - **API Key Authorization**: All endpoints are protected and require a valid `x-api-key` in the header.
   - **Rate Limiting**: IP-based rate limiting (20 requests per 30 seconds) is enforced via middleware to prevent abuse.
 - **Modern Tech Stack**: Built with Next.js 14 (App Router), TypeScript, and deployed on Vercel.
-- **Integrated Tooling**: Uses `@upstash/ratelimit` with a standard Redis client for efficient, serverless rate limiting.
+- **Integrated Tooling**: Uses `@upstash/ratelimit` with `@upstash/redis` for efficient, serverless rate limiting.
 - **Structured Logging**: Each function call produces structured JSON logs for easy monitoring and debugging.
 
 ---
@@ -33,40 +33,22 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ### Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    cd <repository-directory>
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Set up environment variables:**
+1.  **Set up environment variables:**
     -   Create a `.env.local` file in the root of the project by copying the example file.
         ```bash
         cp .env.local.example .env.local
         ```
-    -   Open `.env.local` and add your `API_KEY` and `REDIS_URL`.
+    -   Open `.env.local` and add your `API_KEY` and your Redis connection variables (Vercel provides `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` when using their integration).
         ```
         # .env.local
 
         # Generate a secure, random string for this value.
         API_KEY="your-super-secret-api-key"
 
-        # Your Redis database connection string.
-        # Example: "redis://default:password@us-east-1-redis.upstash.io:6379"
-        REDIS_URL=""
+        # Your Redis database connection variables from Vercel/Upstash
+        UPSTASH_REDIS_REST_URL=""
+        UPSTASH_REDIS_REST_TOKEN=""
         ```
-
-4.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-
-The API will now be running at `http://localhost:3000`.
 
 ---
 
@@ -80,14 +62,14 @@ This project is optimized for deployment on [Vercel](https://vercel.com).
 
 3.  **Connect Redis Database:**
     -   From the Vercel dashboard, navigate to the "Storage" tab.
-    -   Select a Redis provider (like Upstash or Redis) and create a new database.
-    -   Connect the database to your project. Vercel will automatically add the `REDIS_URL` environment variable.
+    -   Select a Redis provider (like Upstash) and create a new database.
+    -   Connect the database to your project. Vercel will automatically add the required environment variables.
 
 4.  **Add API Key Environment Variable:**
     -   Navigate to the "Settings" -> "Environment Variables" tab.
     -   Add your `API_KEY` with the same value you used in your `.env.local` file.
 
-5.  **Deploy:** Trigger a new deployment. Your API will be live at the domain provided by Vercel.
+5.  **Deploy:** Trigger a new deployment. Your API will be live at `https://g-airlines-api.vercel.app`.
 
 ---
 
@@ -99,7 +81,7 @@ All endpoints require a `Content-Type: application/json` header for `POST` reque
 
 Fetches a detailed, mock record of a flight reservation.
 
--   **Endpoint**: `POST /api/get-flight-details`
+-   **Endpoint**: `POST https://g-airlines-api.vercel.app/api/get-flight-details`
 -   **Request Body**:
     ```json
     {
@@ -108,7 +90,7 @@ Fetches a detailed, mock record of a flight reservation.
     ```
 -   **cURL Example**:
     ```bash
-    curl -X POST http://localhost:3000/api/get-flight-details \
+    curl -X POST [https://g-airlines-api.vercel.app/api/get-flight-details](https://g-airlines-api.vercel.app/api/get-flight-details) \
       -H "Content-Type: application/json" \
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "299:E6KUA7" }'
@@ -118,7 +100,7 @@ Fetches a detailed, mock record of a flight reservation.
 
 Searches for mock available flights based on origin, destination, and date.
 
--   **Endpoint**: `POST /api/flight-availability-search`
+-   **Endpoint**: `POST https://g-airlines-api.vercel.app/api/flight-availability-search`
 -   **Request Body**:
     ```json
     {
@@ -129,7 +111,7 @@ Searches for mock available flights based on origin, destination, and date.
     ```
 -   **cURL Example**:
     ```bash
-    curl -X POST http://localhost:3000/api/flight-availability-search \
+    curl -X POST [https://g-airlines-api.vercel.app/api/flight-availability-search](https://g-airlines-api.vercel.app/api/flight-availability-search) \
       -H "Content-Type: application/json" \
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "Origin": "DXB", "Destination": "LGW", "DepartureDate": "2025-10-28" }'
@@ -139,7 +121,7 @@ Searches for mock available flights based on origin, destination, and date.
 
 Calculates the cost of a proposed flight change deterministically.
 
--   **Endpoint**: `POST /api/flight-change-quote`
+-   **Endpoint**: `POST https://g-airlines-api.vercel.app/api/flight-change-quote`
 -   **Request Body**:
     ```json
     {
@@ -149,7 +131,7 @@ Calculates the cost of a proposed flight change deterministically.
     ```
 -   **cURL Example**:
     ```bash
-    curl -X POST http://localhost:3000/api/flight-change-quote \
+    curl -X POST [https://g-airlines-api.vercel.app/api/flight-change-quote](https://g-airlines-api.vercel.app/api/flight-change-quote) \
       -H "Content-Type: application/json" \
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "GOLD-TIER-PNR", "FlightOptionIDs": "OPT-123,OPT-456" }'
@@ -159,7 +141,7 @@ Calculates the cost of a proposed flight change deterministically.
 
 Retrieves a list of available add-ons (seats, baggage, meals).
 
--   **Endpoint**: `POST /api/get-ancillary-offers`
+-   **Endpoint**: `POST https://g-airlines-api.vercel.app/api/get-ancillary-offers`
 -   **Request Body**:
     ```json
     {
@@ -169,7 +151,7 @@ Retrieves a list of available add-ons (seats, baggage, meals).
     ```
 -   **cURL Example**:
     ```bash
-    curl -X POST http://localhost:3000/api/get-ancillary-offers \
+    curl -X POST [https://g-airlines-api.vercel.app/api/get-ancillary-offers](https://g-airlines-api.vercel.app/api/get-ancillary-offers) \
       -H "Content-Type: application/json" \
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "299:E6KUA7", "FlightOptionIDs": "OPT-123" }'
@@ -179,7 +161,7 @@ Retrieves a list of available add-ons (seats, baggage, meals).
 
 Finalizes a flight change using a `QuoteID`.
 
--   **Endpoint**: `POST /api/confirm-flight-change`
+-   **Endpoint**: `POST https://g-airlines-api.vercel.app/api/confirm-flight-change`
 -   **Request Body**:
     ```json
     {
@@ -189,7 +171,7 @@ Finalizes a flight change using a `QuoteID`.
     ```
 -   **cURL Example**:
     ```bash
-    curl -X POST http://localhost:3000/api/confirm-flight-change \
+    curl -X POST [https://g-airlines-api.vercel.app/api/confirm-flight-change](https://g-airlines-api.vercel.app/api/confirm-flight-change) \
       -H "Content-Type: application/json" \
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "299:E6KUA7", "QuoteID": "QUOTE-..." }'
