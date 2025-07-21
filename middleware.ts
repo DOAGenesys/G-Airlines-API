@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { createClient } from 'redis';
 
-const redis = Redis.fromEnv();
+if (!process.env.REDIS_URL) {
+    console.error("FATAL: The REDIS_URL environment variable is not set.");
+}
+
+// Initialize a new Redis client using the standard `redis` package.
+const redis = createClient({
+  url: process.env.REDIS_URL
+});
+
+// The connect method should only be called once.
+// We add an error handler and ensure we only connect if the client is not already open.
+redis.on('error', (err) => console.error('Redis Client Error', err));
+if (!redis.isOpen) {
+    redis.connect();
+}
+
 
 // Initialize the rate limiter.
 const ratelimit = new Ratelimit({
-  redis: redis,
+  redis: redis as any,
   limiter: Ratelimit.slidingWindow(20, '30 s'),
   analytics: true,
   prefix: 'flight_api_ratelimit',
@@ -15,32 +30,62 @@ const ratelimit = new Ratelimit({
 export async function middleware(request: NextRequest) {
   // Only apply middleware to API routes
   if (request.nextUrl.pathname.startsWith('/api')) {
-    const apiKey = request.headers.get('x-api-key');
     const ip = request.ip ?? '127.0.0.1';
+    
+    console.log({
+        message: "Middleware execution started",
+        pathname: request.nextUrl.pathname,
+        ip: ip,
+    });
+
+    const apiKey = request.headers.get('x-api-key');
 
     // 1. Check for API Key
     if (!apiKey) {
+      console.error("API key validation failed: Missing 'x-api-key' header");
       return new NextResponse(
-        JSON.stringify({ error: 'Authorization required. Missing API key.' }),
+        JSON.stringify({ error: "Authorization required. Missing API key." }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     // 2. Validate API Key
     if (apiKey !== process.env.API_KEY) {
+      console.error("API key validation failed: Invalid API key provided");
       return new NextResponse(
         JSON.stringify({ error: 'Invalid API key.' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log("API key validation successful");
+
     // 3. Apply Rate Limiting
-    const { success, limit, remaining } = await ratelimit.limit(ip);
-    if (!success) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
-      );
+    try {
+        const { success, limit, remaining } = await ratelimit.limit(ip);
+        if (!success) {
+            console.warn({
+                message: "Rate limit exceeded for IP",
+                ip: ip,
+                limit: limit,
+                remaining: remaining
+            });
+          return new NextResponse(
+            JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+            { status: 429, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+    } catch (error) {
+        console.error({
+            message: "Error during rate limiting check with 'redis' package",
+            errorMessage: (error as Error).message,
+        });
+        // If the rate limiter itself fails (which is likely in the Edge Runtime),
+        // we will return an internal server error.
+        return new NextResponse(
+            JSON.stringify({ error: 'Internal Server Error: Could not connect to rate limiter.' }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
     }
   }
 
