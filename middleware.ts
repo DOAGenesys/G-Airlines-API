@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
-import { createClient } from 'redis';
+import { Redis } from '@upstash/redis';
 
-// Create a new Redis client.
-// The `createClient` function will automatically use the REDIS_URL environment variable.
-const redis = createClient({
-  url: process.env.REDIS_URL
-});
+const redis = Redis.fromEnv();
 
-// We only need to connect once, so we can do it here.
-// The `connect()` method returns a promise, but we can let the client
-// handle the connection state internally for subsequent requests.
-redis.connect().catch(console.error);
-
-// Initialize the rate limiter, now using the Redis client instance.
+// Initialize the rate limiter.
 const ratelimit = new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(20, '30 s'),
