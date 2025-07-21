@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createLog } from '@/lib/utils';
-import { FlightChangeQuoteRequest, FlightChangeQuoteResponse } from '@/types/flightApi';
+import { FlightChangeQuoteRequest, FlightChangeQuoteResponse, FeeWaiver } from '@/types/flightApi';
 
+/**
+ * Calculates a deterministic value from a string based on its character codes.
+ * @param inputString The string to process.
+ * @returns A numerical value.
+ */
 const getDeterministicValueFromString = (inputString: string): number => {
     let value = 0;
     for (let i = 0; i < inputString.length; i++) {
@@ -36,9 +41,14 @@ export async function POST(request: Request) {
         const taxesAndSurcharges = fareDifference * 0.15;
 
         const isElite = BookingReference.toUpperCase().includes("GOLD") || BookingReference.toUpperCase().includes("PLATINUM");
-        let feeWaiver = { IsWaived: false, Reason: null };
+        
+        // FIX: Explicitly type `feeWaiver` with the FeeWaiver interface.
+        // This tells TypeScript that `Reason` can be a string OR null.
+        let feeWaiver: FeeWaiver = { IsWaived: false, Reason: null };
+
         if (isElite) {
             changeFee = 0.0;
+            // This assignment is now valid.
             feeWaiver = { IsWaived: true, Reason: "Gold Tier Benefit" };
         }
 
