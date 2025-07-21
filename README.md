@@ -14,7 +14,7 @@ This project is a standalone Next.js API that refactors a set of Genesys Cloud F
   - **API Key Authorization**: All endpoints are protected and require a valid `x-api-key` in the header.
   - **Rate Limiting**: IP-based rate limiting (20 requests per 30 seconds) is enforced via middleware to prevent abuse.
 - **Modern Tech Stack**: Built with Next.js 14 (App Router), TypeScript, and deployed on Vercel.
-- **Integrated Tooling**: Uses `@upstash/ratelimit` with Vercel KV for efficient, serverless rate limiting.
+- **Integrated Tooling**: Uses `@upstash/ratelimit` with a standard Redis client for efficient, serverless rate limiting.
 - **Structured Logging**: Each function call produces structured JSON logs for easy monitoring and debugging.
 
 ---
@@ -27,7 +27,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 - [Node.js](https://nodejs.org/en/) (v18.0 or later)
 - `npm`, `yarn`, or `pnpm`
-- A [Vercel](https://vercel.com) account (for deployment and Vercel KV)
+- A [Vercel](https://vercel.com) account (for deployment)
+- A Redis instance (e.g., from Vercel's marketplace) and its connection URL.
 - A Git client
 
 ### Installation
@@ -48,21 +49,17 @@ Follow these instructions to get a copy of the project up and running on your lo
         ```bash
         cp .env.local.example .env.local
         ```
-    -   Open `.env.local` and add a secure, randomly generated string for `API_KEY`. This is the key you will use to authenticate requests.
+    -   Open `.env.local` and add your `API_KEY` and `REDIS_URL`.
         ```
         # .env.local
 
         # Generate a secure, random string for this value.
         API_KEY="your-super-secret-api-key"
 
-        # These will be configured automatically when you link a KV store on Vercel.
-        # For local development, you can create a free KV store on Upstash.
-        KV_URL=""
-        KV_REST_API_URL=""
-        KV_REST_API_TOKEN=""
-        KV_REST_API_READ_ONLY_TOKEN=""
+        # Your Redis database connection string.
+        # Example: "redis://default:password@us-east-1-redis.upstash.io:6379"
+        REDIS_URL=""
         ```
-    -   **For Local Rate Limiting**: To test rate limiting locally, create a free Vercel KV or Upstash Redis database and populate the `KV_*` variables in your `.env.local` file.
 
 4.  **Run the development server:**
     ```bash
@@ -81,10 +78,10 @@ This project is optimized for deployment on [Vercel](https://vercel.com).
 
 2.  **Import Project on Vercel:** From your Vercel dashboard, import the Git repository. Vercel will automatically detect that it is a Next.js project.
 
-3.  **Connect Vercel KV Store:**
-    -   Navigate to the "Storage" tab in your Vercel project settings.
-    -   Create and connect a new KV (Serverless Redis) database.
-    -   Vercel will automatically add the required `KV_*` environment variables to your project.
+3.  **Connect Redis Database:**
+    -   From the Vercel dashboard, navigate to the "Storage" tab.
+    -   Select a Redis provider (like Upstash or Redis) and create a new database.
+    -   Connect the database to your project. Vercel will automatically add the `REDIS_URL` environment variable.
 
 4.  **Add API Key Environment Variable:**
     -   Navigate to the "Settings" -> "Environment Variables" tab.
@@ -116,7 +113,6 @@ Fetches a detailed, mock record of a flight reservation.
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "299:E6KUA7" }'
     ```
--   **Success Response (200 OK)**: Returns a comprehensive JSON object with flight, passenger, and payment details, matching the original `get_flight_details` output contract.
 
 ### 2. Flight Availability Search
 
@@ -138,22 +134,6 @@ Searches for mock available flights based on origin, destination, and date.
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "Origin": "DXB", "Destination": "LGW", "DepartureDate": "2025-10-28" }'
     ```
--   **Success Response (200 OK)**:
-    ```json
-    {
-      "AvailableFlights": [
-        {
-          "FlightOptionID": "OPT-...",
-          "FlightNumber": "FZ1700",
-          "DepartureDateTime": "2025-10-28T08:30:00.000Z",
-          "ArrivalDateTime": "2025-10-28T13:30:00.000Z",
-          "EconomyPrice": 450,
-          "BusinessPrice": 1200,
-          "Currency": "AED"
-        }
-      ]
-    }
-    ```
 
 ### 3. Flight Change Quote
 
@@ -173,21 +153,6 @@ Calculates the cost of a proposed flight change deterministically.
       -H "Content-Type: application/json" \
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "GOLD-TIER-PNR", "FlightOptionIDs": "OPT-123,OPT-456" }'
-    ```
--   **Success Response (200 OK)**:
-    ```json
-    {
-        "QuoteID": "QUOTE-...",
-        "FareDifference": 183,
-        "ChangeFee": 0,
-        "TaxesAndSurcharges": 27.45,
-        "TotalDue": 210.45,
-        "Currency": "AED",
-        "FeeWaiver": {
-            "IsWaived": true,
-            "Reason": "Gold Tier Benefit"
-        }
-    }
     ```
 
 ### 4. Get Ancillary Offers
@@ -209,20 +174,6 @@ Retrieves a list of available add-ons (seats, baggage, meals).
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "299:E6KUA7", "FlightOptionIDs": "OPT-123" }'
     ```
--   **Success Response (200 OK)**:
-    ```json
-    {
-      "AncillaryOffers": [
-        {
-          "AncillaryCode": "SEAT-EX1A",
-          "AncillaryType": "SEAT",
-          "Description": "Exit Row Seat 1A",
-          "Price": 75,
-          "Currency": "AED"
-        }
-      ]
-    }
-    ```
 
 ### 5. Confirm Flight Change
 
@@ -243,24 +194,3 @@ Finalizes a flight change using a `QuoteID`.
       -H "x-api-key: your-super-secret-api-key" \
       -d '{ "BookingReference": "299:E6KUA7", "QuoteID": "QUOTE-..." }'
     ```
--   **Success Response (200 OK)**:
-    ```json
-    {
-      "Status": "SUCCESS",
-      "NewConfirmationNumber": "A4B9C1",
-      "Message": "Your flight change is confirmed. Your new confirmation number is A4B9C1.",
-      "FinalAmountCharged": 257,
-      "Currency": "AED"
-    }
-    ```
-
----
-
-## 🏗️ Project Structure
-
-.├── app/│   └── api/│       ├── confirm-flight-change/│       │   └── route.ts│       ├── flight-availability-search/│       │   └── route.ts│       ├── flight-change-quote/│       │   └── route.ts│       ├── get-ancillary-offers/│       │   └── route.ts│       └── get-flight-details/│           └── route.ts├── lib/│   └── utils.ts├── types/│   └── flightApi.ts├── .env.local.example├── .gitignore├── middleware.ts├── package.json└── tsconfig.json
--   `/app/api/*`: Each folder contains a `route.ts` file that defines an API endpoint using the Next.js App Router convention.
--   `/lib/utils.ts`: Contains shared helper functions (logging, date formatting) used across multiple endpoints.
--   `/types/flightApi.ts`: Defines all TypeScript interfaces for request and response bodies, ensuring type safety.
--   `middleware.ts`: Handles security for all API routes, checking for a valid API key and enforcing rate limits before the request reaches the endpoint logic.
-
