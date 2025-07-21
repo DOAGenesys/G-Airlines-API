@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
 
-// Initialize the rate limiter to allow 20 requests per 30 seconds from a single IP.
+// Create a new Redis client.
+// The `createClient` function will automatically use the REDIS_URL environment variable.
+const redis = createClient({
+  url: process.env.REDIS_URL
+});
+
+// We only need to connect once, so we can do it here.
+// The `connect()` method returns a promise, but we can let the client
+// handle the connection state internally for subsequent requests.
+redis.connect().catch(console.error);
+
+// Initialize the rate limiter, now using the Redis client instance.
 const ratelimit = new Ratelimit({
-  redis: kv,
+  redis: redis,
   limiter: Ratelimit.slidingWindow(20, '30 s'),
   analytics: true,
-  prefix: '@upstash/ratelimit',
+  prefix: 'flight_api_ratelimit',
 });
 
 export async function middleware(request: NextRequest) {
