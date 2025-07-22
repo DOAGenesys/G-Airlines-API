@@ -1,10 +1,10 @@
-# Genesys Flight API Demo
+# G Airlines API Demo
 
-This project is a standalone Next.js API that refactors a set of Genesys Cloud Functions into modern, serverless API endpoints. The API replicates the exact logic and data contracts of the original functions, providing a secure, rate-limited, and easily deployable solution for demonstration purposes, hosted on Vercel.
+This project is a standalone Next.js that exposes a set of API endpoints used for Genesys Cloud demo purposes. The API provides a secure, rate-limited, and easily deployable solution for demonstration purposes, hosted on Vercel.
 
 ## ✨ Features
 
-* **Five Core Endpoints**: Replicates all original flight-related functions.
+* **Five Core Endpoints**: Flight-related functions.
 * **Secure by Default**: API Key Authorization and IP-based Rate Limiting.
 * **Modern Tech Stack**: Next.js 14, TypeScript, Vercel.
 * **Integrated Tooling**: Uses `redis` for rate limiting.
@@ -12,8 +12,6 @@ This project is a standalone Next.js API that refactors a set of Genesys Cloud F
 ## ☁️ Deployment on Vercel
 
 This project is optimized for a direct deployment on [Vercel](https://vercel.com).
-
-**Important Note on Compatibility:** The middleware uses the standard `redis` package, which is **not compatible with Vercel's Edge Runtime**. This configuration will likely cause deployment errors. The Vercel-recommended approach for middleware is to use the `@upstash/redis` package.
 
 ### Deployment Steps
 
@@ -42,13 +40,13 @@ Fetches a detailed, mock record of a flight reservation.
 * **Sample Request**:
     ```json
     {
-      "BookingReference": "299:E6KUA7"
+      "BookingReference": "E6KUA7"
     }
     ```
 * **Sample Response (200 OK)**:
     ```json
     {
-        "BookingReference": "299:E6KUA7",
+        "BookingReference": "E6KUA7",
         "ConfirmationNumber": "E6KUA7",
         "BookingAgent": "claudius.lewis",
         "BookDate": "...",
@@ -128,7 +126,7 @@ Retrieves a list of available add-ons (seats, baggage, meals).
 * **Sample Request**:
     ```json
     {
-      "BookingReference": "299:E6KUA7",
+      "BookingReference": "E6KUA7",
       "FlightOptionIDs": "OPT-a1b2c3d4-..."
     }
     ```
@@ -164,7 +162,7 @@ Finalizes a flight change using a `QuoteID`.
 * **Sample Request**:
     ```json
     {
-      "BookingReference": "299:E6KUA7",
+      "BookingReference": "E6KUA7",
       "QuoteID": "QUOTE-f9e8d7c6-..."
     }
     ```
@@ -189,7 +187,7 @@ Calculates miles earned and provides options for using miles for upgrades or pay
 * **Sample Request**:
     ```json
     {
-      "BookingReference": "299:E6KUA7",
+      "BookingReference": "E6KUA7",
       "QuoteID": "QUOTE-f9e8d7c6-..."
     }
     ```
