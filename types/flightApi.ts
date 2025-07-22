@@ -1,45 +1,47 @@
-// types/flightApi.ts
-
 // flight_availability_search
 export interface FlightAvailabilityRequest {
-  Origin: string;
-  Destination: string;
-  DepartureDate: string; // YYYY-MM-DD
+    DepartureDate: string; // YYYY-MM-DD
+    BookingReference?: string;
+    Origin?: string;
+    Destination?: string;
 }
 
 export interface FlightOption {
-  FlightOptionID: string;
-  FlightNumber: string;
-  DepartureDateTime: string; // ISO 8601
-  ArrivalDateTime: string; // ISO 8601
-  EconomyPrice: number;
-  BusinessPrice: number;
-  Currency: string;
-}
-
-export interface FlightAvailabilityResponse {
-  AvailableFlights: FlightOption[];
-}
-
-// flight_change_quote
-export interface FlightChangeQuoteRequest {
-  BookingReference: string;
-  FlightOptionIDs: string; // Comma-separated
+    FlightOptionID: string;
+    FlightNumber: string;
+    DepartureDateTime: string; // ISO 8601
+    ArrivalDateTime: string; // ISO 8601
+    EconomyPrice: number;
+    BusinessPrice: number;
+    Currency: string;
 }
 
 export interface FeeWaiver {
-  IsWaived: boolean;
-  Reason: string | null;
+    IsWaived: boolean;
+    Reason: string | null;
 }
 
-export interface FlightChangeQuoteResponse {
-  QuoteID: string;
-  FareDifference: number;
-  ChangeFee: number;
-  TaxesAndSurcharges: number;
-  TotalDue: number;
-  Currency: string;
-  FeeWaiver: FeeWaiver;
+// Combines flight details with a change quote
+export interface FlightChangeOption {
+    // Original flight details
+    FlightOptionID: string;
+    FlightNumber: string;
+    DepartureDateTime: string;
+    ArrivalDateTime: string;
+    EconomyPrice: number;
+    BusinessPrice: number;
+    // Added quote details
+    QuoteID: string;
+    FareDifference: number;
+    ChangeFee: number;
+    TaxesAndSurcharges: number;
+    TotalDue: number;
+    Currency: string;
+    FeeWaiver: FeeWaiver;
+}
+
+export interface FlightAvailabilityResponse {
+    AvailableFlightQuotes: FlightChangeOption[];
 }
 
 // get_ancillary_offers
@@ -73,6 +75,28 @@ export interface ConfirmFlightChangeResponse {
     FinalAmountCharged: number;
     Currency: string;
 }
+
+// loyalty-redemption-options (NEW)
+export interface LoyaltyRedemptionRequest {
+    BookingReference: string;
+    QuoteID: string;
+}
+
+export interface RedemptionOption {
+    RedemptionCode: string;
+    OptionType: "UPGRADE" | "PAY_WITH_MILES";
+    Description: string;
+    MilesRequired: number;
+}
+
+export interface LoyaltyRedemptionResponse {
+    MilesEarned: {
+        Economy: number;
+        Business: number;
+    };
+    RedemptionOptions: RedemptionOption[];
+}
+
 
 // get_flight_details (This is a large one)
 export interface GetFlightDetailsRequest {
