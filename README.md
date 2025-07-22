@@ -10,7 +10,7 @@ This project is a standalone Next.js API that refactors a set of Genesys Cloud F
 
 * **Modern Tech Stack**: Next.js 14, TypeScript, Vercel.
 
-* **Integrated Tooling**: Uses `@upstash/ratelimit` with the standard `redis` client for rate limiting.
+* **Integrated Tooling**: Uses `redis` for rate limiting.
 
 ## ☁️ Deployment on Vercel
 
@@ -20,25 +20,25 @@ This project is optimized for a direct deployment on [Vercel](https://vercel.com
 
 ### Deployment Steps
 
-1. **Push to a Git Repository**: Push the project code to a GitHub, GitLab, or Bitbucket repository.
+1.  **Push to a Git Repository**: Push the project code to a GitHub, GitLab, or Bitbucket repository.
 
-2. **Import Project on Vercel**: From your Vercel dashboard, import the Git repository. Vercel will automatically detect the Next.js framework.
+2.  **Import Project on Vercel**: From your Vercel dashboard, import the Git repository. Vercel will automatically detect the Next.js framework.
 
-3. **Connect Redis Database**:
+3.  **Connect Redis Database**:
 
-   * From the Vercel dashboard, navigate to the **Storage** tab.
+    * From the Vercel dashboard, navigate to the **Storage** tab.
 
-   * Create a new Redis database (e.g., via the Upstash integration).
+    * Create a new Redis database (e.g., via the Upstash integration).
 
-   * Connect the database to your project. This will automatically create the required `REDIS_URL` environment variable.
+    * Connect the database to your project. This will automatically create the required `REDIS_URL` environment variable.
 
-4. **Add API Key Environment Variable**:
+4.  **Add API Key Environment Variable**:
 
-   * In your project's **Settings** -> **Environment Variables** tab, add a new variable for `API_KEY`.
+    * In your project's **Settings** -> **Environment Variables** tab, add a new variable for `API_KEY`.
 
-   * Provide a secure, randomly generated string as its value.
+    * Provide a secure, randomly generated string as its value.
 
-5. **Deploy**: Trigger a new deployment from the "Deployments" tab. Your API will be live at the domain provided by Vercel.
+5.  **Deploy**: Trigger a new deployment from the "Deployments" tab. Your API will be live at the domain provided by Vercel.
 
 ## 🔑 API Endpoints
 
@@ -94,13 +94,20 @@ Fetches a detailed, mock record of a flight reservation.
 
 ---
 
-### 2. Flight Availability Search
+### 2. Flight Availability Search and Quote
 
-Searches for mock available flights based on origin, destination, and date.
+Searches for available flights and provides a change quote for each option. It can search using an existing booking reference or by origin/destination.
 
 * **Endpoint**: `POST /api/flight-availability-search`
 
-* **Sample Request**:
+* **Sample Request (by Booking Reference)**:
+    ```json
+    {
+      "BookingReference": "PLATINUM-PNR-123",
+      "DepartureDate": "2025-12-10"
+    }
+    ```
+* **Sample Request (by Origin & Destination)**:
     ```json
     {
       "Origin": "DXB",
@@ -112,24 +119,24 @@ Searches for mock available flights based on origin, destination, and date.
 * **Sample Response (200 OK)**:
     ```json
     {
-      "AvailableFlights": [
+      "AvailableFlightQuotes": [
         {
-          "FlightOptionID": "OPT-a1b2c3d4-...",
+          "FlightOptionID": "OPT-...",
           "FlightNumber": "FZ1700",
           "DepartureDateTime": "2025-12-10T08:30:00.000Z",
           "ArrivalDateTime": "2025-12-10T13:30:00.000Z",
           "EconomyPrice": 450,
           "BusinessPrice": 1200,
-          "Currency": "AED"
-        },
-        {
-          "FlightOptionID": "OPT-e5f6g7h8-...",
-          "FlightNumber": "FZ1701",
-          "DepartureDateTime": "2025-12-10T14:00:00.000Z",
-          "ArrivalDateTime": "2025-12-10T19:30:00.000Z",
-          "EconomyPrice": 500,
-          "BusinessPrice": 1300,
-          "Currency": "AED"
+          "QuoteID": "QUOTE-...",
+          "FareDifference": 172,
+          "ChangeFee": 0,
+          "TaxesAndSurcharges": 25.8,
+          "TotalDue": 197.8,
+          "Currency": "AED",
+          "FeeWaiver": {
+            "IsWaived": true,
+            "Reason": "Gold Tier Benefit"
+          }
         }
       ]
     }
@@ -137,39 +144,7 @@ Searches for mock available flights based on origin, destination, and date.
 
 ---
 
-### 3. Flight Change Quote
-
-Calculates the cost of a proposed flight change deterministically.
-
-* **Endpoint**: `POST /api/flight-change-quote`
-
-* **Sample Request**:
-    ```json
-    {
-      "BookingReference": "PLATINUM-PNR-123",
-      "FlightOptionIDs": "OPT-a1b2c3d4-...,OPT-e5f6g7h8-..."
-    }
-    ```
-
-* **Sample Response (200 OK)**:
-    ```json
-    {
-        "QuoteID": "QUOTE-f9e8d7c6-...",
-        "FareDifference": 155,
-        "ChangeFee": 0,
-        "TaxesAndSurcharges": 23.25,
-        "TotalDue": 178.25,
-        "Currency": "AED",
-        "FeeWaiver": {
-            "IsWaived": true,
-            "Reason": "Gold Tier Benefit"
-        }
-    }
-    ```
-
----
-
-### 4. Get Ancillary Offers
+### 3. Get Ancillary Offers
 
 Retrieves a list of available add-ons (seats, baggage, meals).
 
@@ -207,7 +182,7 @@ Retrieves a list of available add-ons (seats, baggage, meals).
 
 ---
 
-### 5. Confirm Flight Change
+### 4. Confirm Flight Change
 
 Finalizes a flight change using a `QuoteID`.
 
@@ -229,5 +204,51 @@ Finalizes a flight change using a `QuoteID`.
       "Message": "Your flight change is confirmed. Your new confirmation number is XB45K1.",
       "FinalAmountCharged": 285.50,
       "Currency": "AED"
+    }
+    ```
+	
+---
+
+### 5. Get Loyalty Redemption Options
+
+Calculates miles earned and provides options for using miles for upgrades or payment.
+
+* **Endpoint**: `POST /api/loyalty-redemption-options`
+
+* **Sample Request**:
+    ```json
+    {
+      "BookingReference": "299:E6KUA7",
+      "QuoteID": "QUOTE-f9e8d7c6-..."
+    }
+    ```
+
+* **Sample Response (200 OK)**:
+    ```json
+    {
+        "MilesEarned": {
+            "Economy": 2500,
+            "Business": 7500
+        },
+        "RedemptionOptions": [
+            {
+                "RedemptionCode": "UPG-BUS",
+                "OptionType": "UPGRADE",
+                "Description": "Upgrade to Business Class on one segment",
+                "MilesRequired": 25000
+            },
+            {
+                "RedemptionCode": "PWM-100",
+                "OptionType": "PAY_WITH_MILES",
+                "Description": "Pay 100 AED of the total due with miles",
+                "MilesRequired": 10000
+            },
+            {
+                "RedemptionCode": "PWM-ALL",
+                "OptionType": "PAY_WITH_MILES",
+                "Description": "Pay the entire due amount with miles",
+                "MilesRequired": 45000
+            }
+        ]
     }
     ```
