@@ -9,7 +9,6 @@ export interface FeeWaiver {
     Reason: string | null;
 }
 
-// Combines flight details with a change quote. QuoteID is the sole identifier.
 export interface FlightChangeOption {
     // Flight details
     FlightNumber: string;
