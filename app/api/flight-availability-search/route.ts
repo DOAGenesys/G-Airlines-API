@@ -14,7 +14,7 @@ const getDeterministicValueFromString = (inputString: string): number => {
 // Internal helper to fetch reservation details, adapted from get-flight-details endpoint.
 const fetchReservationDetails = async (bookingReference: string, invocationId: string): Promise<GetFlightDetailsResponse | null> => {
     createLog('INFO', 'Starting internal reservation details lookup', { invocationId, bookingReference });
-    // This is a mock implementation. In a real scenario, this would call a database or another service.
+    // This is a mock implementation.
     if (!bookingReference) return null;
 
     const parts = bookingReference.split(':');
@@ -63,7 +63,6 @@ export async function POST(request: Request) {
 
         const { BookingReference, DepartureDate } = body;
 
-        // --- Input Validation ---
         if (!BookingReference || !DepartureDate) {
             const errorDetail = "Missing required parameters. 'BookingReference' and 'DepartureDate' are required.";
             createLog('ERROR', 'Input validation failed', { invocationId, event: body });
@@ -72,7 +71,6 @@ export async function POST(request: Request) {
         
         createLog('INFO', 'Input validation successful', { invocationId, BookingReference, DepartureDate });
 
-        // Use BookingReference to find Origin and Destination
         const reservationDetails = await fetchReservationDetails(BookingReference, invocationId);
         if (!reservationDetails || reservationDetails.logicalFlights.length === 0) {
             const errorDetail = `Could not retrieve flight details for BookingReference: ${BookingReference}`;
@@ -83,7 +81,6 @@ export async function POST(request: Request) {
         const searchOrigin = reservationDetails.logicalFlights[0].Origin;
         const searchDestination = reservationDetails.logicalFlights[0].Destination;
         createLog('INFO', 'Extracted O&D from booking reference', { invocationId, Origin: searchOrigin, Destination: searchDestination });
-
 
         const availableFlightQuotes: FlightChangeOption[] = [];
         const baseDate = new Date(DepartureDate);
@@ -99,12 +96,12 @@ export async function POST(request: Request) {
 
             const arrTime = new Date(depTime.getTime());
             arrTime.setUTCHours(arrTime.getUTCHours() + flightTimes[i].durationHours);
-
-            const flightOptionID = `OPT-${crypto.randomUUID()}`;
+            
+            const quoteId = `QUOTE-${crypto.randomUUID()}`;
 
             // --- Quote Calculation Logic ---
             const bookingValue = getDeterministicValueFromString(BookingReference);
-            const flightsValue = getDeterministicValueFromString(flightOptionID);
+            const flightsValue = getDeterministicValueFromString(quoteId); // Use quoteId for deterministic calculation
             const fareDifference = 50 + ((bookingValue + flightsValue) % 201);
             let changeFee = 150.0;
             const taxesAndSurcharges = fareDifference * 0.15;
@@ -117,16 +114,14 @@ export async function POST(request: Request) {
             }
 
             const totalDue = fareDifference + changeFee + taxesAndSurcharges;
-            // --- End of Quote Calculation ---
 
             availableFlightQuotes.push({
-                FlightOptionID: flightOptionID,
                 FlightNumber: `FZ${1700 + i}`,
                 DepartureDateTime: depTime.toISOString(),
                 ArrivalDateTime: arrTime.toISOString(),
                 EconomyPrice: flightTimes[i].economyPrice,
                 BusinessPrice: flightTimes[i].businessPrice,
-                QuoteID: `QUOTE-${crypto.randomUUID()}`,
+                QuoteID: quoteId,
                 FareDifference: parseFloat(fareDifference.toFixed(2)),
                 ChangeFee: parseFloat(changeFee.toFixed(2)),
                 TaxesAndSurcharges: parseFloat(taxesAndSurcharges.toFixed(2)),
@@ -142,13 +137,10 @@ export async function POST(request: Request) {
 
     } catch (error: any) {
         createLog('FATAL', 'An unhandled error occurred', {
-            invocationId,
-            error: error.message,
-            stack: error.stack
+            invocationId, error: error.message, stack: error.stack
         });
         return NextResponse.json({
-            status: 500,
-            error: "An internal error occurred while searching for flights."
+            status: 500, error: "An internal error occurred while searching for flights."
         }, { status: 500 });
     }
 }
