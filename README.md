@@ -5,11 +5,8 @@ This project is a standalone Next.js API that refactors a set of Genesys Cloud F
 ## ✨ Features
 
 * **Five Core Endpoints**: Replicates all original flight-related functions.
-
 * **Secure by Default**: API Key Authorization and IP-based Rate Limiting.
-
 * **Modern Tech Stack**: Next.js 14, TypeScript, Vercel.
-
 * **Integrated Tooling**: Uses `redis` for rate limiting.
 
 ## ☁️ Deployment on Vercel
@@ -21,23 +18,14 @@ This project is optimized for a direct deployment on [Vercel](https://vercel.com
 ### Deployment Steps
 
 1.  **Push to a Git Repository**: Push the project code to a GitHub, GitLab, or Bitbucket repository.
-
 2.  **Import Project on Vercel**: From your Vercel dashboard, import the Git repository. Vercel will automatically detect the Next.js framework.
-
 3.  **Connect Redis Database**:
-
     * From the Vercel dashboard, navigate to the **Storage** tab.
-
     * Create a new Redis database (e.g., via the Upstash integration).
-
     * Connect the database to your project. This will automatically create the required `REDIS_URL` environment variable.
-
 4.  **Add API Key Environment Variable**:
-
     * In your project's **Settings** -> **Environment Variables** tab, add a new variable for `API_KEY`.
-
     * Provide a secure, randomly generated string as its value.
-
 5.  **Deploy**: Trigger a new deployment from the "Deployments" tab. Your API will be live at the domain provided by Vercel.
 
 ## 🔑 API Endpoints
@@ -51,14 +39,12 @@ All endpoints require a `Content-Type: application/json` header and an `x-api-ke
 Fetches a detailed, mock record of a flight reservation.
 
 * **Endpoint**: `POST /api/get-flight-details`
-
 * **Sample Request**:
     ```json
     {
       "BookingReference": "299:E6KUA7"
     }
     ```
-
 * **Sample Response (200 OK)**:
     ```json
     {
@@ -96,26 +82,16 @@ Fetches a detailed, mock record of a flight reservation.
 
 ### 2. Flight Availability Search and Quote
 
-Searches for available flights and provides a change quote for each option. It can search using an existing booking reference or by origin/destination.
+Searches for available flights and provides a change quote for each option. The search uses the route from an existing booking reference.
 
 * **Endpoint**: `POST /api/flight-availability-search`
-
-* **Sample Request (by Booking Reference)**:
+* **Sample Request**:
     ```json
     {
       "BookingReference": "PLATINUM-PNR-123",
       "DepartureDate": "2025-12-10"
     }
     ```
-* **Sample Request (by Origin & Destination)**:
-    ```json
-    {
-      "Origin": "DXB",
-      "Destination": "LHR",
-      "DepartureDate": "2025-12-10"
-    }
-    ```
-
 * **Sample Response (200 OK)**:
     ```json
     {
@@ -149,7 +125,6 @@ Searches for available flights and provides a change quote for each option. It c
 Retrieves a list of available add-ons (seats, baggage, meals).
 
 * **Endpoint**: `POST /api/get-ancillary-offers`
-
 * **Sample Request**:
     ```json
     {
@@ -157,7 +132,6 @@ Retrieves a list of available add-ons (seats, baggage, meals).
       "FlightOptionIDs": "OPT-a1b2c3d4-..."
     }
     ```
-
 * **Sample Response (200 OK)**:
     ```json
     {
@@ -187,7 +161,6 @@ Retrieves a list of available add-ons (seats, baggage, meals).
 Finalizes a flight change using a `QuoteID`.
 
 * **Endpoint**: `POST /api/confirm-flight-change`
-
 * **Sample Request**:
     ```json
     {
@@ -195,7 +168,6 @@ Finalizes a flight change using a `QuoteID`.
       "QuoteID": "QUOTE-f9e8d7c6-..."
     }
     ```
-
 * **Sample Response (200 OK)**:
     ```json
     {
@@ -206,7 +178,7 @@ Finalizes a flight change using a `QuoteID`.
       "Currency": "AED"
     }
     ```
-	
+
 ---
 
 ### 5. Get Loyalty Redemption Options
@@ -214,7 +186,6 @@ Finalizes a flight change using a `QuoteID`.
 Calculates miles earned and provides options for using miles for upgrades or payment.
 
 * **Endpoint**: `POST /api/loyalty-redemption-options`
-
 * **Sample Request**:
     ```json
     {
@@ -222,7 +193,6 @@ Calculates miles earned and provides options for using miles for upgrades or pay
       "QuoteID": "QUOTE-f9e8d7c6-..."
     }
     ```
-
 * **Sample Response (200 OK)**:
     ```json
     {
