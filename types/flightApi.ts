@@ -4,31 +4,20 @@ export interface FlightAvailabilityRequest {
     DepartureDate: string; // YYYY-MM-DD
 }
 
-export interface FlightOption {
-    FlightOptionID: string;
-    FlightNumber: string;
-    DepartureDateTime: string; // ISO 8601
-    ArrivalDateTime: string; // ISO 8601
-    EconomyPrice: number;
-    BusinessPrice: number;
-    Currency: string;
-}
-
 export interface FeeWaiver {
     IsWaived: boolean;
     Reason: string | null;
 }
 
-// Combines flight details with a change quote
+// Combines flight details with a change quote. QuoteID is the sole identifier.
 export interface FlightChangeOption {
-    // Original flight details
-    FlightOptionID: string;
+    // Flight details
     FlightNumber: string;
-    DepartureDateTime: string;
-    ArrivalDateTime: string;
+    DepartureDateTime: string; // ISO 8601
+    ArrivalDateTime: string; // ISO 8601
     EconomyPrice: number;
     BusinessPrice: number;
-    // Added quote details
+    // Quote details
     QuoteID: string;
     FareDifference: number;
     ChangeFee: number;
@@ -45,7 +34,7 @@ export interface FlightAvailabilityResponse {
 // get_ancillary_offers
 export interface AncillaryOffersRequest {
     BookingReference: string;
-    FlightOptionIDs: string; // Comma-separated
+    QuoteIDs: string; // Comma-separated
 }
 
 export interface AncillaryOffer {
@@ -74,7 +63,7 @@ export interface ConfirmFlightChangeResponse {
     Currency: string;
 }
 
-// loyalty-redemption-options (NEW)
+// loyalty-redemption-options
 export interface LoyaltyRedemptionRequest {
     BookingReference: string;
     QuoteID: string;
@@ -96,7 +85,7 @@ export interface LoyaltyRedemptionResponse {
 }
 
 
-// get_flight_details (This is a large one)
+// get_flight_details
 export interface GetFlightDetailsRequest {
     BookingReference: string;
 }
