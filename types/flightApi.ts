@@ -1,9 +1,7 @@
 // flight_availability_search
 export interface FlightAvailabilityRequest {
+    BookingReference: string;
     DepartureDate: string; // YYYY-MM-DD
-    BookingReference?: string;
-    Origin?: string;
-    Destination?: string;
 }
 
 export interface FlightOption {
