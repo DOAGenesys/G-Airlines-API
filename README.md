@@ -95,7 +95,6 @@ Searches for available flights and provides a change quote for each option. The 
     {
       "AvailableFlightQuotes": [
         {
-          "FlightOptionID": "OPT-...",
           "FlightNumber": "FZ1700",
           "DepartureDateTime": "2025-12-10T08:30:00.000Z",
           "ArrivalDateTime": "2025-12-10T13:30:00.000Z",
@@ -127,7 +126,7 @@ Retrieves a list of available add-ons (seats, baggage, meals).
     ```json
     {
       "BookingReference": "E6KUA7",
-      "FlightOptionIDs": "OPT-a1b2c3d4-..."
+      "QuoteIDs": "QUOTE-a1b2c3d4-..."
     }
     ```
 * **Sample Response (200 OK)**:
