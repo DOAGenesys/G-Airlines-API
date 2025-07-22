@@ -9,16 +9,16 @@ export async function POST(request: Request) {
         createLog('INFO', 'Function execution started: get_ancillary_offers', { invocationId });
         createLog('DEBUG', 'Received event payload', { invocationId, event: body });
 
-        const { BookingReference, FlightOptionIDs } = body;
+        const { BookingReference, QuoteIDs } = body;
 
-        if (!BookingReference || !FlightOptionIDs) {
-            const errorDetail = "Missing or invalid parameters. 'BookingReference' and 'FlightOptionIDs' (as a string) are required.";
+        if (!BookingReference || !QuoteIDs) {
+            const errorDetail = "Missing or invalid parameters. 'BookingReference' and 'QuoteIDs' (as a string) are required.";
             createLog('ERROR', 'Input validation failed', { invocationId, event: body });
             return NextResponse.json({ status: 400, error: errorDetail }, { status: 400 });
         }
         
-        const parsedFlightIDs = FlightOptionIDs.split(',');
-        createLog('INFO', 'Input validation successful and IDs parsed', { invocationId, parsedFlightIDs });
+        const parsedQuoteIDs = QuoteIDs.split(',');
+        createLog('INFO', 'Input validation successful and IDs parsed', { invocationId, parsedQuoteIDs });
         
         const offers = [
             { AncillaryCode: 'SEAT-EX1A', AncillaryType: 'SEAT', Description: 'Exit Row Seat 1A', Price: 75.0, Currency: 'AED' },
@@ -36,13 +36,10 @@ export async function POST(request: Request) {
 
     } catch (error: any) {
         createLog('FATAL', 'An unhandled error occurred', {
-            invocationId,
-            error: error.message,
-            stack: error.stack
+            invocationId, error: error.message, stack: error.stack
         });
         return NextResponse.json({
-            status: 500,
-            error: "An internal error occurred while fetching ancillary offers."
+            status: 500, error: "An internal error occurred while fetching ancillary offers."
         }, { status: 500 });
     }
 }
