@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createLog, formatForChargeDesc, formatTime, formatTo12Hour } from '@/lib/utils';
+import { createLog, formatTo12Hour } from '@/lib/utils';
 import { FlightAvailabilityRequest, FlightAvailabilityResponse, FeeWaiver, GetFlightDetailsResponse, FlightChangeOption } from '@/types/flightApi';
 
 // Helper function to calculate a deterministic value from a string.
@@ -61,34 +61,29 @@ export async function POST(request: Request) {
         createLog('INFO', 'Function execution started: flight_availability_search', { invocationId });
         createLog('DEBUG', 'Received event payload', { invocationId, event: body });
 
-        const { DepartureDate, BookingReference, Origin, Destination } = body;
+        const { BookingReference, DepartureDate } = body;
 
         // --- Input Validation ---
-        if (!DepartureDate || (!BookingReference && (!Origin || !Destination))) {
-            const errorDetail = "Missing required parameters. Provide 'DepartureDate' and either 'BookingReference' or both 'Origin' and 'Destination'.";
+        if (!BookingReference || !DepartureDate) {
+            const errorDetail = "Missing required parameters. 'BookingReference' and 'DepartureDate' are required.";
             createLog('ERROR', 'Input validation failed', { invocationId, event: body });
             return NextResponse.json({ status: 400, error: errorDetail }, { status: 400 });
         }
+        
+        createLog('INFO', 'Input validation successful', { invocationId, BookingReference, DepartureDate });
 
-        let searchOrigin = Origin;
-        let searchDestination = Destination;
-        const pnrForQuote = BookingReference || `ANON-${crypto.randomUUID()}`; // Use real PNR or a dummy one for quote calculation
-
-        // If BookingReference is provided, use it to find Origin and Destination
-        if (BookingReference) {
-            const reservationDetails = await fetchReservationDetails(BookingReference, invocationId);
-            if (reservationDetails && reservationDetails.logicalFlights.length > 0) {
-                searchOrigin = reservationDetails.logicalFlights[0].Origin;
-                searchDestination = reservationDetails.logicalFlights[0].Destination;
-                createLog('INFO', 'Extracted O&D from booking reference', { invocationId, Origin: searchOrigin, Destination: searchDestination });
-            } else {
-                const errorDetail = `Could not retrieve flight details for BookingReference: ${BookingReference}`;
-                createLog('ERROR', 'Booking reference lookup failed', { invocationId, BookingReference });
-                return NextResponse.json({ status: 404, error: errorDetail }, { status: 404 });
-            }
+        // Use BookingReference to find Origin and Destination
+        const reservationDetails = await fetchReservationDetails(BookingReference, invocationId);
+        if (!reservationDetails || reservationDetails.logicalFlights.length === 0) {
+            const errorDetail = `Could not retrieve flight details for BookingReference: ${BookingReference}`;
+            createLog('ERROR', 'Booking reference lookup failed', { invocationId, BookingReference });
+            return NextResponse.json({ status: 404, error: errorDetail }, { status: 404 });
         }
         
-        createLog('INFO', 'Input validation successful', { invocationId, searchOrigin, searchDestination, DepartureDate });
+        const searchOrigin = reservationDetails.logicalFlights[0].Origin;
+        const searchDestination = reservationDetails.logicalFlights[0].Destination;
+        createLog('INFO', 'Extracted O&D from booking reference', { invocationId, Origin: searchOrigin, Destination: searchDestination });
+
 
         const availableFlightQuotes: FlightChangeOption[] = [];
         const baseDate = new Date(DepartureDate);
@@ -107,13 +102,13 @@ export async function POST(request: Request) {
 
             const flightOptionID = `OPT-${crypto.randomUUID()}`;
 
-            // --- Quote Calculation Logic (merged from flight-change-quote) ---
-            const bookingValue = getDeterministicValueFromString(pnrForQuote);
+            // --- Quote Calculation Logic ---
+            const bookingValue = getDeterministicValueFromString(BookingReference);
             const flightsValue = getDeterministicValueFromString(flightOptionID);
             const fareDifference = 50 + ((bookingValue + flightsValue) % 201);
             let changeFee = 150.0;
             const taxesAndSurcharges = fareDifference * 0.15;
-            const isElite = pnrForQuote.toUpperCase().includes("GOLD") || pnrForQuote.toUpperCase().includes("PLATINUM");
+            const isElite = BookingReference.toUpperCase().includes("GOLD") || BookingReference.toUpperCase().includes("PLATINUM");
             let feeWaiver: FeeWaiver = { IsWaived: false, Reason: null };
 
             if (isElite) {
@@ -125,14 +120,12 @@ export async function POST(request: Request) {
             // --- End of Quote Calculation ---
 
             availableFlightQuotes.push({
-                // Flight details
                 FlightOptionID: flightOptionID,
                 FlightNumber: `FZ${1700 + i}`,
                 DepartureDateTime: depTime.toISOString(),
                 ArrivalDateTime: arrTime.toISOString(),
                 EconomyPrice: flightTimes[i].economyPrice,
                 BusinessPrice: flightTimes[i].businessPrice,
-                // Quote details
                 QuoteID: `QUOTE-${crypto.randomUUID()}`,
                 FareDifference: parseFloat(fareDifference.toFixed(2)),
                 ChangeFee: parseFloat(changeFee.toFixed(2)),
