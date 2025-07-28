@@ -9,7 +9,7 @@ This project is a standalone Next.js that exposes a set of API endpoints used fo
 * **Modern Tech Stack**: Next.js 14, TypeScript, Vercel.
 * **Integrated Tooling**: Uses `redis` for rate limiting.
 
-## ☁️ Deployment on Vercel
+## Deployment on Vercel
 
 This project is optimized for a direct deployment on [Vercel](https://vercel.com).
 
