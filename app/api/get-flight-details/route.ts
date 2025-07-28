@@ -65,7 +65,7 @@ const fetchReservationDetails = async (bookingReference: string, invocationId: s
                     { Origin: "ZNZ", Destination: "DAR", DepartureTime: phys2Dep.toISOString(), Arrivaltime: firstArr.toISOString(), AirCraftType: "TMPX" }
                 ]),
                 customersJson: JSON.stringify([
-                    { AirlinePersons: [ { PersonOrgID: 246255753, FirstName: "LAMB", LastName: "ALLAN", PTCID: 1, FareClassCode: "R", WebFareType: "Lite", FareBasisCode: "RR6AE2", Cabin: "ECONOMY", Charges: [ { CodeType: "AIR", Amount: 575.0, Description: `FZ 1687 DXB-ZNZ ${formatForChargeDesc(firstDep)} ${formatTime(firstDep)} ${formatTime(phys1Arr)}\nFZ 1687 ZNZ-DAR ${formatForChargeDesc(firstDep)} ${formatTime(phys2Dep)} ${formatTime(firstArr)}` }, { CodeType: "TAX", TaxCode: "AE", Amount: 75.0, Description: "AE: Passenger Service Charge (Intl)" }, { CodeType: "TAX", TaxCode: "F6", Amount: 45.0, Description: "F6: Passenger Facilities Charge." }, { CodeType: "TAX", TaxCode: "YQ", Amount: 280.0, Description: "YQ: YQ - DUMMY" }, { CodeType: "TAX", TaxCode: "ZR", Amount: 5.0, Description: "ZR: Advanced passenger information fee" }, { CodeType: "TAX", TaxCode: "TP", Amount: 5.0, Description: "TP: Passengers Security & Safety Service Fees" } ] } ] }
+                    { AirlinePersons: [ { PersonOrgID: 246255753, FirstName: "JOHN", LastName: "DOE", PTCID: 1, FareClassCode: "R", WebFareType: "Lite", FareBasisCode: "RR6AE2", Cabin: "ECONOMY", Charges: [ { CodeType: "AIR", Amount: 575.0, Description: `FZ 1687 DXB-ZNZ ${formatForChargeDesc(firstDep)} ${formatTime(firstDep)} ${formatTime(phys1Arr)}\nFZ 1687 ZNZ-DAR ${formatForChargeDesc(firstDep)} ${formatTime(phys2Dep)} ${formatTime(firstArr)}` }, { CodeType: "TAX", TaxCode: "AE", Amount: 75.0, Description: "AE: Passenger Service Charge (Intl)" }, { CodeType: "TAX", TaxCode: "F6", Amount: 45.0, Description: "F6: Passenger Facilities Charge." }, { CodeType: "TAX", TaxCode: "YQ", Amount: 280.0, Description: "YQ: YQ - DUMMY" }, { CodeType: "TAX", TaxCode: "ZR", Amount: 5.0, Description: "ZR: Advanced passenger information fee" }, { CodeType: "TAX", TaxCode: "TP", Amount: 5.0, Description: "TP: Passengers Security & Safety Service Fees" } ] } ] }
                 ])
             },
             {
@@ -77,15 +77,15 @@ const fetchReservationDetails = async (bookingReference: string, invocationId: s
                     { Origin: "ZNZ", Destination: "DXB", DepartureTime: phys4Dep.toISOString(), Arrivaltime: returnArr.toISOString(), AirCraftType: "73X" }
                 ]),
                 customersJson: JSON.stringify([
-                    { AirlinePersons: [ { PersonOrgID: 246255753, FirstName: "LAMB", LastName: "ALLAN", PTCID: 1, FareClassCode: "R", WebFareType: "Lite", FareBasisCode: "RR6AE2", Cabin: "ECONOMY", Charges: [ { CodeType: "AIR", Amount: 580.0, Description: `FZ 1688 DAR-ZNZ ${formatForChargeDesc(returnDep)} ${formatTime(returnDep)} ${formatTime(phys3Arr)}\nFZ 1688 ZNZ-DXB ${formatForChargeDesc(returnDep)} ${formatTime(phys4Dep)} ${formatTime(returnArr)}` }, { CodeType: "TAX", TaxCode: "YQ", Amount: 280.0, Description: "YQ: YQ - DUMMY" }, { CodeType: "TAX", TaxCode: "ZR", Amount: 5.0, Description: "ZR: Advanced passenger information fee" }, { CodeType: "TAX", TaxCode: "HY", Amount: 40.0, Description: "HY: Aviation Safety Fee" }, { CodeType: "TAX", TaxCode: "TZ", Amount: 150.0, Description: "TZ: Airport Tax" }, { CodeType: "TAX", TaxCode: "M4", Amount: 20.0, Description: "M4: Security Fee" } ] } ] }
+                    { AirlinePersons: [ { PersonOrgID: 246255753, FirstName: "JOHN", LastName: "DOE", PTCID: 1, FareClassCode: "R", WebFareType: "Lite", FareBasisCode: "RR6AE2", Cabin: "ECONOMY", Charges: [ { CodeType: "AIR", Amount: 580.0, Description: `FZ 1688 DAR-ZNZ ${formatForChargeDesc(returnDep)} ${formatTime(returnDep)} ${formatTime(phys3Arr)}\nFZ 1688 ZNZ-DXB ${formatForChargeDesc(returnDep)} ${formatTime(phys4Dep)} ${formatTime(returnArr)}` }, { CodeType: "TAX", TaxCode: "YQ", Amount: 280.0, Description: "YQ: YQ - DUMMY" }, { CodeType: "TAX", TaxCode: "ZR", Amount: 5.0, Description: "ZR: Advanced passenger information fee" }, { CodeType: "TAX", TaxCode: "HY", Amount: 40.0, Description: "HY: Aviation Safety Fee" }, { CodeType: "TAX", TaxCode: "TZ", Amount: 150.0, Description: "TZ: Airport Tax" }, { CodeType: "TAX", TaxCode: "M4", Amount: 20.0, Description: "M4: Security Fee" } ] } ] }
                 ])
             }
         ],
         Payments: [
-            { ReservationPaymentID: 185800246, PaymentAmount: 2060.0, CurrencyPaid: "AED", PaymentMethod: "TCSH", DatePaid: bookDate.toISOString(), PersonOrgID: 246255753, FirstName: "LAMB", LastName: "ALLAN" }
+            { ReservationPaymentID: 185800246, PaymentAmount: 2060.0, CurrencyPaid: "AED", PaymentMethod: "TCSH", DatePaid: bookDate.toISOString(), PersonOrgID: 246255753, FirstName: "JOHN", LastName: "DOE" }
         ],
         ReservationContacts: [
-            { PersonOrgID: 246255753, FirstName: "LAMB", LastName: "ALLAN", PTCID: 1 }
+            { PersonOrgID: 246255753, FirstName: "JOHN", LastName: "DOE", PTCID: 1 }
         ],
         ContactInfos: [
             { ContactID: 304356199, ContactType: 4, ContactField: "claudius.lewis@gairlines.com", PreferredContactMethod: true }
