@@ -2,7 +2,7 @@
 
 This project is a standalone Next.js that exposes a set of API endpoints used for Genesys Cloud demo purposes. The API provides a secure, rate-limited, and easily deployable solution for demonstration purposes, hosted on Vercel.
 
-## ✨ Features
+## Features
 
 * **Five Core Endpoints**: Flight-related functions.
 * **Secure by Default**: API Key Authorization and IP-based Rate Limiting.
@@ -26,7 +26,7 @@ This project is optimized for a direct deployment on [Vercel](https://vercel.com
     * Provide a secure, randomly generated string as its value.
 5.  **Deploy**: Trigger a new deployment from the "Deployments" tab. Your API will be live at the domain provided by Vercel.
 
-## 🔑 API Endpoints
+## API Endpoints
 
 All endpoints require a `Content-Type: application/json` header and an `x-api-key` header. The base URL is `https://g-airlines-api.vercel.app`.
 
